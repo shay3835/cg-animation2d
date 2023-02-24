@@ -12,6 +12,7 @@ class Renderer {
         this.fps = fps;
         this.start_time = null;
         this.prev_time = null;
+        this.ball = null;
     }
 
     // flag:  bool
@@ -66,6 +67,9 @@ class Renderer {
     //
     updateTransforms(time, delta_time) {
         // TODO: update any transformations needed for animation
+        if(this.ball != null){
+            
+        }
     }
     
     //
@@ -95,14 +99,33 @@ class Renderer {
         
         // Following line is example of drawing a single polygon
         // (this should be removed/edited after you implement the slide)
-        let diamond = [
-            Vector3(400, 150, 1),
-            Vector3(500, 300, 1),
-            Vector3(400, 450, 1),
-            Vector3(300, 300, 1)
-        ];
+        
         let teal = [0, 128, 128, 255];
-        this.drawConvexPolygon(diamond, teal);
+        let ball = this.drawCircle({x:100,y:100},50,20);
+        this.drawConvexPolygon(ball, teal);
+    }
+
+        // center:       object {x: __, y: __}
+    // radius:       int
+    // num_edges:    int
+    // color:        array of int [R, G, B, A]
+    // framebuffer:  canvas ctx image data
+    drawCircle(center, radius, num_edges) {
+        let vertices = []
+        let oldX = center.x + radius;
+        let oldY = center.y;
+        // TODO: draw a sequence of straight lines to approximate a circle
+        for (let i = 0; i < num_edges; i++) {
+            let t = i / parseFloat(num_edges-1);
+            let x = Math.cos(t * Math.PI * 2) * radius + center.x;
+            let y = Math.sin(t * Math.PI * 2) * radius + center.y;
+            x = parseInt(x);
+            y = parseInt(y);
+            vertices.push(Vector3(x,y,1));
+            oldX = x;
+            oldY = y;
+        }
+        return vertices;
     }
 
     //

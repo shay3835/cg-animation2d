@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////////
-// 3x3 Transform Matrices                                                         //
+// 3x3 Transform Matrices                                                        //
 ///////////////////////////////////////////////////////////////////////////////////
 
 // Set values of existing 3x3 matrix to the identity matrix
@@ -22,7 +22,6 @@ function mat3x3Scale(mat3x3, sx, sy) {
     mat3x3.values = [[sx, 0, 0],
                      [0, sy, 0],
                      [0, 0, 1]];
-
 }
 
 // Set values of existing 3x3 matrix to the rotate matrix
