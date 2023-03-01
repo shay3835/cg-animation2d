@@ -12,7 +12,10 @@ class Renderer {
         this.fps = fps;
         this.start_time = null;
         this.prev_time = null;
-        this.ball = null;
+        this.ballCenter = Vector3(100, 300, 1);
+        this.ballRadius = 50;
+        this.ball = this.getCircleVerts({x:100,y:300},50,20);
+        this.ballSpeed = {x:0, y:-1}
     }
 
     // flag:  bool
@@ -66,9 +69,17 @@ class Renderer {
 
     //
     updateTransforms(time, delta_time) {
+        //console.log("running");
         // TODO: update any transformations needed for animation
-        if(this.ball != null){
-            this.ball.updateTransforms
+        console.log(this.ballCenter.values[1][0])
+        if(this.ballCenter.values[1][0] < 0 || this.ballCenter.values[1][0] > this.height){
+            this.ballSpeed = this.ballSpeed * -1;
+        }
+        let ballTransform = new Matrix(3,3);
+        mat3x3Translate(ballTransform, this.ballSpeed.x * delta_time * 0.1, this.ballSpeed.y * delta_time * 0.1);
+        for (let index = 0; index < this.ball.length; index++) {
+            this.ballCenter = ballTransform.mult(this.ballCenter);
+            this.ball[index] = ballTransform.mult(this.ball[index]);
         }
     }
     
@@ -96,13 +107,9 @@ class Renderer {
     drawSlide0() {
         // TODO: draw bouncing ball (circle that changes direction whenever it hits an edge)
         
-        
-        // Following line is example of drawing a single polygon
-        // (this should be removed/edited after you implement the slide)
-        
         let teal = [0, 128, 128, 255];
-        let ball = this.drawCircle({x:100,y:100},50,20);
-        this.drawConvexPolygon(ball, teal);
+        //console.log(this.ball);
+        this.drawConvexPolygon(this.ball, teal);
     }
 
         // center:       object {x: __, y: __}
@@ -110,7 +117,7 @@ class Renderer {
     // num_edges:    int
     // color:        array of int [R, G, B, A]
     // framebuffer:  canvas ctx image data
-    drawCircle(center, radius, num_edges) {
+    getCircleVerts(center, radius, num_edges) {
         let vertices = []
         let oldX = center.x + radius;
         let oldY = center.y;

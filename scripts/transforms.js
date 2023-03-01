@@ -31,6 +31,11 @@ function mat3x3Rotate(mat3x3, theta) {
                      [0, 0, 1]];
 }
 
+//generates a transform and appies it to each vertex in the vertex list
+function translateVertexList(vertex_list, translation){
+
+}
+
 // Create a new 3-component vector with values x,y,w
 function Vector3(x, y, w) {
     let vec3 = new Matrix(3, 1);
