@@ -68,7 +68,7 @@ class Renderer {
     updateTransforms(time, delta_time) {
         // TODO: update any transformations needed for animation
         if(this.ball != null){
-            
+            this.ball.updateTransforms
         }
     }
     
