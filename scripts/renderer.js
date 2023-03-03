@@ -1,4 +1,6 @@
-class Renderer {
+import {Matrix} from "matrix.js";
+import * as matrixGeneration from "./transforms";
+export class Renderer {
     // canvas:              object ({id: __, width: __, height: __})
     // limit_fps_flag:      bool 
     // fps:                 int
@@ -12,7 +14,7 @@ class Renderer {
         this.fps = fps;
         this.start_time = null;
         this.prev_time = null;
-        this.ballCenter = Vector3(100, 300, 1);
+        this.ballCenter = Matrix.Vector3(100, 300, 1);
         this.ballRadius = 50;
         this.ball = this.getCircleVerts({x:100,y:300},50,20);
         this.ballSpeed = {x:0, y:-1}
@@ -76,7 +78,7 @@ class Renderer {
             this.ballSpeed = this.ballSpeed * -1;
         }
         let ballTransform = new Matrix(3,3);
-        mat3x3Translate(ballTransform, this.ballSpeed.x * delta_time * 0.1, this.ballSpeed.y * delta_time * 0.1);
+        matrixGeneration.mat3x3Translate(ballTransform, this.ballSpeed.x * delta_time * 0.1, this.ballSpeed.y * delta_time * 0.1);
         for (let index = 0; index < this.ball.length; index++) {
             this.ballCenter = ballTransform.mult(this.ballCenter);
             this.ball[index] = ballTransform.mult(this.ball[index]);
@@ -128,7 +130,7 @@ class Renderer {
             let y = Math.sin(t * Math.PI * 2) * radius + center.y;
             x = parseInt(x);
             y = parseInt(y);
-            vertices.push(Vector3(x,y,1));
+            vertices.push(matrixGeneration.Vector3(x,y,1));
             oldX = x;
             oldY = y;
         }
@@ -177,4 +179,4 @@ class Renderer {
         this.ctx.closePath();
         this.ctx.fill();
     }
-};
+}

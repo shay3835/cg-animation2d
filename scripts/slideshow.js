@@ -1,8 +1,10 @@
-const { createApp } = Vue;
+import { Renderer } from "./renderer";
+/*global Vue*/
+export const { createApp } = Vue;
 
 let app;
 
-function init() {
+export function init() {
     app = createApp({
         data() {
             return {
