@@ -1,5 +1,5 @@
 import {Matrix} from "matrix.js";
-import * as matrixGeneration from "./transforms";
+import * as transforms from "./transforms";
 export class Renderer {
     // canvas:              object ({id: __, width: __, height: __})
     // limit_fps_flag:      bool 
@@ -78,7 +78,7 @@ export class Renderer {
             this.ballSpeed = this.ballSpeed * -1;
         }
         let ballTransform = new Matrix(3,3);
-        matrixGeneration.mat3x3Translate(ballTransform, this.ballSpeed.x * delta_time * 0.1, this.ballSpeed.y * delta_time * 0.1);
+        transforms.mat3x3Translate(ballTransform, this.ballSpeed.x * delta_time * 0.1, this.ballSpeed.y * delta_time * 0.1);
         for (let index = 0; index < this.ball.length; index++) {
             this.ballCenter = ballTransform.mult(this.ballCenter);
             this.ball[index] = ballTransform.mult(this.ball[index]);
@@ -130,7 +130,7 @@ export class Renderer {
             let y = Math.sin(t * Math.PI * 2) * radius + center.y;
             x = parseInt(x);
             y = parseInt(y);
-            vertices.push(matrixGeneration.Vector3(x,y,1));
+            vertices.push(transforms.Vector3(x,y,1));
             oldX = x;
             oldY = y;
         }
