@@ -16,7 +16,12 @@ class Renderer {
         this.ballCenter = Vector3(100, 300, 1);
         this.ballRadius = 50;
         this.ballVerts = this.getCircleVerts({ x: 100, y: 300 }, this.ballRadius, 20);
-        this.ballSpeed = { x: 10.0, y: -20.0 }
+        this.ballSpeed = { x: 7.0, y: -3.0 }
+        this.dynamicBallVerts = this.getCircleVerts({ x: 100, y: 300 }, this.ballRadius, 5);
+        this.dynamicBallCenter = Vector3(100, 300, 1);
+        this.dynamicBallSpeed = {x:10, y:-20}
+        this.dynamicBallColor = [255, 255, 0, 255];
+        this.dynamicBallRotationSpeed = -0.005;
         this.triangleVerts1 = [new Vector3(100, 100, 1), new Vector3(150, 200, 1), new Vector3(200, 100, 1)]
         this.triangleVerts2 = [new Vector3(200, 200, 1), new Vector3(250, 300, 1), new Vector3(300, 200, 1)]
         this.triangleVerts3 = [new Vector3(400, 700, 1), new Vector3(350, 400, 1), new Vector3(400, 500, 1)]
@@ -80,50 +85,80 @@ class Renderer {
     updateTransforms(time, delta_time) {
         //console.log("running");
         this.animateBall(time, delta_time);
+
+        this.rotate(time, delta_time, this.rotatingTriangles[0], -0.001);
+        this.rotate(time, delta_time, this.rotatingTriangles[1], 0.001);
+        this.rotate(time, delta_time, this.rotatingTriangles[2], 0.002);
         
-        this.rotateTriangle(time, delta_time, this.rotatingTriangles[0], -0.001);
-        this.rotateTriangle(time, delta_time, this.rotatingTriangles[1], 0.001);
-        this.rotateTriangle(time, delta_time, this.rotatingTriangles[2], 0.002);
         
+        this.scale(time, delta_time, this.scalingTriangles[0], {x:4.5, y:1});
+        this.scale(time, delta_time, this.scalingTriangles[1], {x:1, y:0});
+        this.scale(time, delta_time, this.scalingTriangles[2], {x:1, y:1});
+
+        this.animateBallFun(time, delta_time);
+        this.scale(time, delta_time, this.dynamicBallVerts, {x:-5,y:-5})
+        this.rotate(time, delta_time, this.dynamicBallVerts, this.dynamicBallRotationSpeed)
         
-        this.scaleTriangles(time, delta_time, this.scalingTriangles[0], {x:4.5, y:1});
-        this.scaleTriangles(time, delta_time, this.scalingTriangles[1], {x:1, y:0});
-        this.scaleTriangles(time, delta_time, this.scalingTriangles[2], {x:1, y:1});
     }
 
     animateBall(time, delta_time) {
         //the amount to translate to get back in bounds when we exit the bounds
-        let offset = { x: 0, y: 0 };
         let yCenter = this.ballCenter.values[1][0];
         let xCenter = this.ballCenter.values[0][0];
         //X
-        if (xCenter < this.ballRadius) {
-            this.ballSpeed.x = this.ballSpeed.y * -0.99;
-            offset.x = this.ballRadius - xCenter;
-        } else if (xCenter > this.canvas.width - this.ballRadius) {
-            this.ballSpeed.x = this.ballSpeed.x * -0.99;
-            offset.x = this.canvas.width - this.ballRadius - xCenter;
+        if (xCenter < this.ballRadius || xCenter > this.canvas.width - this.ballRadius) {
+            this.ballSpeed.x = this.ballSpeed.x * -1;
         }
         //Y
-        if (yCenter < this.ballRadius) {
-            this.ballSpeed.y = this.ballSpeed.y * -0.95;
-            offset.y = this.ballRadius - yCenter;
-        } else if (yCenter > this.canvas.height - this.ballRadius) {
-            this.ballSpeed.y = this.ballSpeed.y * -0.95;
-            offset.y = this.canvas.height - this.ballRadius - yCenter;
+        if (yCenter < this.ballRadius || yCenter > this.canvas.height - this.ballRadius) {
+            this.ballSpeed.y = this.ballSpeed.y * -1;
         }
-
-        this.ballSpeed.y += -0.02 * delta_time;
-        this.ballSpeed.x -= 0.01 * Math.sign(this.ballSpeed.x);
         let ballTransform = new Matrix(3, 3);
-        mat3x3Translate(ballTransform, (this.ballSpeed.x * delta_time * 0.1) + offset.x, (this.ballSpeed.y * delta_time * 0.1) + offset.y);
+        mat3x3Translate(ballTransform, (this.ballSpeed.x * delta_time * 0.1), (this.ballSpeed.y * delta_time * 0.1));
         this.ballCenter = ballTransform.mult(this.ballCenter);
         for (let index = 0; index < this.ballVerts.length; index++) {
             this.ballVerts[index] = ballTransform.mult(this.ballVerts[index]);
         }
     }
 
-    rotateTriangle(time, delta_time, triangleVerts, speed){
+    animateBallFun(time, delta_time) {
+        this.dynamicBallColor[0] = (Math.sin(time * 0.001) +1) * 128;
+        this.dynamicBallColor[1] = (Math.sin(time * 0.0015) +1) * 128;
+        this.dynamicBallColor[1] = (Math.sin(time * 0.002) +1) * 128;
+        //the amount to translate to get back in bounds when we exit the bounds
+        let offset = { x: 0, y: 0 };
+        let yCenter = this.dynamicBallCenter.values[1][0];
+        let xCenter = this.dynamicBallCenter.values[0][0];
+        //X
+        if (xCenter < this.ballRadius) {
+            this.dynamicBallSpeed.x = this.dynamicBallSpeed.x * -0.99;
+            this.dynamicBallRotationSpeed *= -1;
+            offset.x = this.ballRadius - xCenter;
+        } else if (xCenter > this.canvas.width - this.ballRadius) {
+            this.dynamicBallSpeed.x = this.dynamicBallSpeed.x * -0.99;
+            this.dynamicBallRotationSpeed *= -1;
+            offset.x = this.canvas.width - this.ballRadius - xCenter;
+        }
+        //Y
+        if (yCenter < this.ballRadius) {
+            this.dynamicBallSpeed.y = this.dynamicBallSpeed.y * -0.95;
+            offset.y = this.ballRadius - yCenter;
+        } else if (yCenter > this.canvas.height - this.ballRadius) {
+            this.dynamicBallSpeed.y = this.dynamicBallSpeed.y * -0.95;
+            offset.y = this.canvas.height - this.ballRadius - yCenter;
+        }
+
+        this.dynamicBallSpeed.y += -0.02 * delta_time;
+        this.dynamicBallSpeed.x -= 0.01 * Math.sign(this.dynamicBallSpeed.x);
+        let ballTransform = new Matrix(3, 3);
+        mat3x3Translate(ballTransform, (this.dynamicBallSpeed.x * delta_time * 0.1) + offset.x, (this.dynamicBallSpeed.y * delta_time * 0.1) + offset.y);
+        this.dynamicBallCenter = ballTransform.mult(this.dynamicBallCenter);
+        for (let index = 0; index < this.dynamicBallVerts.length; index++) {
+            this.dynamicBallVerts[index] = ballTransform.mult(this.dynamicBallVerts[index]);
+        }
+    }
+
+    rotate(time, delta_time, triangleVerts, speed){
         
         let center = {x:0, y:0};
         for (let index = 0; index < triangleVerts.length; index++) {
@@ -143,7 +178,7 @@ class Renderer {
         }
     }
 
-    scaleTriangles(time, delta_time, triangleVerts, scaleFactor){
+    scale(time, delta_time, triangleVerts, scaleFactor){
         let center = {x:0, y:0};
         for (let index = 0; index < triangleVerts.length; index++) {
             center.x += triangleVerts[index].values[0][0];
@@ -239,7 +274,7 @@ class Renderer {
         // TODO: get creative!
         //   - animation should involve all three basic transformation types
         //     (translation, scaling, and rotation)
-
+        this.drawConvexPolygon(this.dynamicBallVerts, this.dynamicBallColor)
 
     }
 
