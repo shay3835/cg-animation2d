@@ -17,7 +17,10 @@ class Renderer {
         this.ballRadius = 50;
         this.ballVerts = this.getCircleVerts({ x: 100, y: 300 }, this.ballRadius, 20);
         this.ballSpeed = { x: 10.0, y: -20.0 }
-        this.triangleVerts = [new Vector3(100, 100, 1), new Vector3(150, 200, 1), new Vector3(200, 100, 1)]
+        this.triangleVerts1 = [new Vector3(100, 100, 1), new Vector3(150, 200, 1), new Vector3(200, 100, 1)]
+        this.triangleVerts2 = [new Vector3(200, 200, 1), new Vector3(250, 300, 1), new Vector3(300, 200, 1)]
+        this.triangleVerts3 = [new Vector3(400, 700, 1), new Vector3(350, 400, 1), new Vector3(400, 500, 1)]
+        this.triangles = [this.triangleVerts1,this.triangleVerts2,this.triangleVerts3];
     }
 
     // flag:  bool
@@ -73,7 +76,10 @@ class Renderer {
     updateTransforms(time, delta_time) {
         //console.log("running");
         this.animateBall(time, delta_time);
-        this.rotateTriangle(time, delta_time);
+        for (let index = 0; index < this.triangles.length; index++) {
+            this.rotateTriangle(time, delta_time, this.triangles[index], 0.01*((index + 1) * 1.5 - 4));
+        }
+        
     }
 
     animateBall(time, delta_time) {
@@ -108,23 +114,23 @@ class Renderer {
         }
     }
 
-    rotateTriangle(time, delta_time){
+    rotateTriangle(time, delta_time, triangleVerts, speed){
         
         let center = {x:0, y:0};
-        for (let index = 0; index < this.triangleVerts.length; index++) {
-            center.x += this.triangleVerts[index].values[0][0];
-            center.y += this.triangleVerts[index].values[1][0];
+        for (let index = 0; index < triangleVerts.length; index++) {
+            center.x += triangleVerts[index].values[0][0];
+            center.y += triangleVerts[index].values[1][0];
         }
-        center.x /= this.triangleVerts.length;
-        center.y /= this.triangleVerts.length;
+        center.x /= triangleVerts.length;
+        center.y /= triangleVerts.length;
         let translateToCenter = new Matrix(3, 3);
         let translateBack = new Matrix(3, 3);
         let rotateTransform = new Matrix(3, 3);
         mat3x3Translate(translateToCenter, -center.x, -center.y);
         mat3x3Translate(translateBack, center.x, center.y);
-        (mat3x3Rotate(rotateTransform, 0.001 * delta_time));
-        for (let index = 0; index < this.triangleVerts.length; index++) {
-            this.triangleVerts[index] = translateBack.mult(rotateTransform).mult(translateToCenter).mult(this.triangleVerts[index]);
+        (mat3x3Rotate(rotateTransform, speed * delta_time));
+        for (let index = 0; index < triangleVerts.length; index++) {
+            triangleVerts[index] = translateBack.mult(rotateTransform).mult(translateToCenter).mult(triangleVerts[index]);
         }
     }
 
@@ -180,8 +186,11 @@ class Renderer {
     drawSlide1() {
         // TODO: draw at least 3 polygons that spin about their own centers
         //   - have each polygon spin at a different speed / direction
-        this.drawConvexPolygon(this.triangleVerts, [0, 228, 128, 255]);
-
+        
+        for (let index = 0; index < this.triangles.length; index++) {
+            const triangle = this.triangles[index];
+            this.drawConvexPolygon(triangle, [index*80, 256/(index+1 * 3), 128/(index+1*3), 255]);
+        }
     }
 
     //
