@@ -20,7 +20,11 @@ class Renderer {
         this.triangleVerts1 = [new Vector3(100, 100, 1), new Vector3(150, 200, 1), new Vector3(200, 100, 1)]
         this.triangleVerts2 = [new Vector3(200, 200, 1), new Vector3(250, 300, 1), new Vector3(300, 200, 1)]
         this.triangleVerts3 = [new Vector3(400, 700, 1), new Vector3(350, 400, 1), new Vector3(400, 500, 1)]
-        this.triangles = [this.triangleVerts1,this.triangleVerts2,this.triangleVerts3];
+        this.rotatingTriangles = [this.triangleVerts1,this.triangleVerts2,this.triangleVerts3];
+        this.triangleVerts4 = [new Vector3(700, 100, 1), new Vector3(550, 500, 1), new Vector3(400, 100, 1)]
+        this.triangleVerts5 = [new Vector3(200, 200, 1), new Vector3(250, 300, 1), new Vector3(300, 200, 1)]
+        this.triangleVerts6 = [new Vector3(400, 700, 1), new Vector3(350, 400, 1), new Vector3(400, 500, 1)]
+        this.scalingTriangles = [this.triangleVerts4,this.triangleVerts5,this.triangleVerts6];
     }
 
     // flag:  bool
@@ -76,10 +80,15 @@ class Renderer {
     updateTransforms(time, delta_time) {
         //console.log("running");
         this.animateBall(time, delta_time);
-        for (let index = 0; index < this.triangles.length; index++) {
-            this.rotateTriangle(time, delta_time, this.triangles[index], 0.01*((index + 1) * 1.5 - 4));
-        }
         
+        this.rotateTriangle(time, delta_time, this.rotatingTriangles[0], -0.001);
+        this.rotateTriangle(time, delta_time, this.rotatingTriangles[1], 0.001);
+        this.rotateTriangle(time, delta_time, this.rotatingTriangles[2], 0.002);
+        
+        
+        this.scaleTriangles(time, delta_time, this.scalingTriangles[0], {x:4.5, y:1});
+        this.scaleTriangles(time, delta_time, this.scalingTriangles[1], {x:1, y:0});
+        this.scaleTriangles(time, delta_time, this.scalingTriangles[2], {x:1, y:1});
     }
 
     animateBall(time, delta_time) {
@@ -131,6 +140,26 @@ class Renderer {
         (mat3x3Rotate(rotateTransform, speed * delta_time));
         for (let index = 0; index < triangleVerts.length; index++) {
             triangleVerts[index] = translateBack.mult(rotateTransform).mult(translateToCenter).mult(triangleVerts[index]);
+        }
+    }
+
+    scaleTriangles(time, delta_time, triangleVerts, scaleFactor){
+        let center = {x:0, y:0};
+        for (let index = 0; index < triangleVerts.length; index++) {
+            center.x += triangleVerts[index].values[0][0];
+            center.y += triangleVerts[index].values[1][0];
+        }
+        center.x /= triangleVerts.length;
+        center.y /= triangleVerts.length;
+        let translateToCenter = new Matrix(3, 3);
+        let translateBack = new Matrix(3, 3);
+        let scaleTransform = new Matrix(3, 3);
+        mat3x3Translate(translateToCenter, -center.x, -center.y);
+        mat3x3Translate(translateBack, center.x, center.y);
+        mat3x3Scale(scaleTransform, 1 + delta_time*(Math.cos(time * 0.001) * 0.00009 * scaleFactor.x) , 1 + delta_time*(Math.sin(time * 0.001) * 0.00009 * scaleFactor.y));
+        for (let index = 0; index < triangleVerts.length; index++) {
+            triangleVerts[index] = translateBack.mult(scaleTransform).mult(translateToCenter).mult(triangleVerts[index]);
+            //triangleVerts[index] = scaleTransform.mult(triangleVerts[index]);
         }
     }
 
@@ -187,8 +216,8 @@ class Renderer {
         // TODO: draw at least 3 polygons that spin about their own centers
         //   - have each polygon spin at a different speed / direction
         
-        for (let index = 0; index < this.triangles.length; index++) {
-            const triangle = this.triangles[index];
+        for (let index = 0; index < this.rotatingTriangles.length; index++) {
+            const triangle = this.rotatingTriangles[index];
             this.drawConvexPolygon(triangle, [index*80, 256/(index+1 * 3), 128/(index+1*3), 255]);
         }
     }
@@ -198,7 +227,10 @@ class Renderer {
         // TODO: draw at least 2 polygons grow and shrink about their own centers
         //   - have each polygon grow / shrink different sizes
         //   - try at least 1 polygon that grows / shrinks non-uniformly in the x and y directions
-
+        for (let index = 0; index < this.scalingTriangles.length; index++) {
+            const triangle = this.scalingTriangles[index];
+            this.drawConvexPolygon(triangle, [index*80, 256/(index+1 * 3), 128/(index+1*3), 255]);
+        }
 
     }
 
