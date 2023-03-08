@@ -1,3 +1,4 @@
+/* global  */
 class Renderer {
     // canvas:              object ({id: __, width: __, height: __})
     // limit_fps_flag:      bool 
@@ -14,8 +15,8 @@ class Renderer {
         this.prev_time = null;
         this.ballCenter = Vector3(100, 300, 1);
         this.ballRadius = 50;
-        this.ball = this.getCircleVerts({x:100,y:300},50,20);
-        this.ballSpeed = {x:0, y:-1}
+        this.ball = this.getCircleVerts({x:100,y:300},this.ballRadius,20);
+        this.ballSpeed = {x:10.0, y:-10.0}
     }
 
     // flag:  bool
@@ -70,15 +71,34 @@ class Renderer {
     //
     updateTransforms(time, delta_time) {
         //console.log("running");
-        // TODO: update any transformations needed for animation
-        console.log(this.ballCenter.values[1][0])
-        if(this.ballCenter.values[1][0] < 0 || this.ballCenter.values[1][0] > this.height){
-            this.ballSpeed = this.ballSpeed * -1;
+        
+        //the amount to translate to get back in bounds when we exit the bounds
+        let offset = {x: 0, y: 0};
+        let yCenter = this.ballCenter.values[1][0];
+        let xCenter = this.ballCenter.values[0][0];
+        //X
+        if(xCenter < this.ballRadius){
+            this.ballSpeed.x = this.ballSpeed.y * -0.99;
+            offset.x = this.ballRadius - xCenter;
+        }else if(xCenter > this.canvas.width-this.ballRadius){
+            this.ballSpeed.x = this.ballSpeed.x * -0.99;
+            offset.x = this.canvas.width-this.ballRadius - xCenter;
         }
+        //Y
+        if(yCenter < this.ballRadius){
+            this.ballSpeed.y = this.ballSpeed.y * -0.95;
+            offset.y = this.ballRadius - yCenter;
+        }else if(yCenter > this.canvas.height-this.ballRadius){
+            this.ballSpeed.y = this.ballSpeed.y * -0.95;
+            offset.y = this.canvas.height-this.ballRadius - yCenter;
+        }
+        
+        this.ballSpeed.y += -0.02 * delta_time;
+        this.ballSpeed.x -= 0.01 * Math.sign(this.ballSpeed.x);
         let ballTransform = new Matrix(3,3);
-        matrixGeneration.mat3x3Translate(ballTransform, this.ballSpeed.x * delta_time * 0.1, this.ballSpeed.y * delta_time * 0.1);
+        mat3x3Translate(ballTransform, (this.ballSpeed.x * delta_time * 0.1) + offset.x, (this.ballSpeed.y * delta_time * 0.1) + offset.y);
+        this.ballCenter = ballTransform.mult(this.ballCenter);
         for (let index = 0; index < this.ball.length; index++) {
-            this.ballCenter = ballTransform.mult(this.ballCenter);
             this.ball[index] = ballTransform.mult(this.ball[index]);
         }
     }
@@ -128,7 +148,7 @@ class Renderer {
             let y = Math.sin(t * Math.PI * 2) * radius + center.y;
             x = parseInt(x);
             y = parseInt(y);
-            vertices.push(matrixGeneration.Vector3(x,y,1));
+            vertices.push(Vector3(x,y,1));
             oldX = x;
             oldY = y;
         }
@@ -177,4 +197,4 @@ class Renderer {
         this.ctx.closePath();
         this.ctx.fill();
     }
-};
+}
