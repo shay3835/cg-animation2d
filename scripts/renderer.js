@@ -125,8 +125,8 @@ class Renderer {
         this.timer += delta_time;
         if(this.timer > 20000){
             this.timer = 0;
-            this.dynamicBallVerts = this.getCircleVerts({ x: 100, y: 300 }, this.ballRadius, 5);
-            this.dynamicBallCenter = Vector3(100, 300, 1);
+            //this.dynamicBallVerts = this.getCircleVerts({ x: 100, y: 300 }, this.ballRadius, 5);
+            //this.dynamicBallCenter = Vector3(100, 300, 1);
             this.dynamicBallSpeed.x = 10;
             this.dynamicBallSpeed.y = 30;
         }
