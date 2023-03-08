@@ -15,8 +15,9 @@ class Renderer {
         this.prev_time = null;
         this.ballCenter = Vector3(100, 300, 1);
         this.ballRadius = 50;
-        this.ball = this.getCircleVerts({x:100,y:300},this.ballRadius,20);
-        this.ballSpeed = {x:10.0, y:-10.0}
+        this.ballVerts = this.getCircleVerts({ x: 100, y: 300 }, this.ballRadius, 20);
+        this.ballSpeed = { x: 10.0, y: -20.0 }
+        this.triangleVerts = [new Vector3(100, 100, 1), new Vector3(150, 200, 1), new Vector3(200, 100, 1)]
     }
 
     // flag:  bool
@@ -71,38 +72,62 @@ class Renderer {
     //
     updateTransforms(time, delta_time) {
         //console.log("running");
-        
+        this.animateBall(time, delta_time);
+        this.rotateTriangle(time, delta_time);
+    }
+
+    animateBall(time, delta_time) {
         //the amount to translate to get back in bounds when we exit the bounds
-        let offset = {x: 0, y: 0};
+        let offset = { x: 0, y: 0 };
         let yCenter = this.ballCenter.values[1][0];
         let xCenter = this.ballCenter.values[0][0];
         //X
-        if(xCenter < this.ballRadius){
+        if (xCenter < this.ballRadius) {
             this.ballSpeed.x = this.ballSpeed.y * -0.99;
             offset.x = this.ballRadius - xCenter;
-        }else if(xCenter > this.canvas.width-this.ballRadius){
+        } else if (xCenter > this.canvas.width - this.ballRadius) {
             this.ballSpeed.x = this.ballSpeed.x * -0.99;
-            offset.x = this.canvas.width-this.ballRadius - xCenter;
+            offset.x = this.canvas.width - this.ballRadius - xCenter;
         }
         //Y
-        if(yCenter < this.ballRadius){
+        if (yCenter < this.ballRadius) {
             this.ballSpeed.y = this.ballSpeed.y * -0.95;
             offset.y = this.ballRadius - yCenter;
-        }else if(yCenter > this.canvas.height-this.ballRadius){
+        } else if (yCenter > this.canvas.height - this.ballRadius) {
             this.ballSpeed.y = this.ballSpeed.y * -0.95;
-            offset.y = this.canvas.height-this.ballRadius - yCenter;
+            offset.y = this.canvas.height - this.ballRadius - yCenter;
         }
-        
+
         this.ballSpeed.y += -0.02 * delta_time;
         this.ballSpeed.x -= 0.01 * Math.sign(this.ballSpeed.x);
-        let ballTransform = new Matrix(3,3);
+        let ballTransform = new Matrix(3, 3);
         mat3x3Translate(ballTransform, (this.ballSpeed.x * delta_time * 0.1) + offset.x, (this.ballSpeed.y * delta_time * 0.1) + offset.y);
         this.ballCenter = ballTransform.mult(this.ballCenter);
-        for (let index = 0; index < this.ball.length; index++) {
-            this.ball[index] = ballTransform.mult(this.ball[index]);
+        for (let index = 0; index < this.ballVerts.length; index++) {
+            this.ballVerts[index] = ballTransform.mult(this.ballVerts[index]);
         }
     }
-    
+
+    rotateTriangle(time, delta_time){
+        
+        let center = {x:0, y:0};
+        for (let index = 0; index < this.triangleVerts.length; index++) {
+            center.x += this.triangleVerts[index].values[0][0];
+            center.y += this.triangleVerts[index].values[1][0];
+        }
+        center.x /= this.triangleVerts.length;
+        center.y /= this.triangleVerts.length;
+        let translateToCenter = new Matrix(3, 3);
+        let translateBack = new Matrix(3, 3);
+        let rotateTransform = new Matrix(3, 3);
+        mat3x3Translate(translateToCenter, -center.x, -center.y);
+        mat3x3Translate(translateBack, center.x, center.y);
+        (mat3x3Rotate(rotateTransform, 0.001 * delta_time));
+        for (let index = 0; index < this.triangleVerts.length; index++) {
+            this.triangleVerts[index] = translateBack.mult(rotateTransform).mult(translateToCenter).mult(this.triangleVerts[index]);
+        }
+    }
+
     //
     drawSlide() {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
@@ -126,31 +151,27 @@ class Renderer {
     //
     drawSlide0() {
         // TODO: draw bouncing ball (circle that changes direction whenever it hits an edge)
-        
+
         let teal = [0, 128, 128, 255];
         //console.log(this.ball);
-        this.drawConvexPolygon(this.ball, teal);
+        this.drawConvexPolygon(this.ballVerts, teal);
     }
 
-        // center:       object {x: __, y: __}
+    // center:       object {x: __, y: __}
     // radius:       int
     // num_edges:    int
     // color:        array of int [R, G, B, A]
     // framebuffer:  canvas ctx image data
     getCircleVerts(center, radius, num_edges) {
         let vertices = []
-        let oldX = center.x + radius;
-        let oldY = center.y;
         // TODO: draw a sequence of straight lines to approximate a circle
         for (let i = 0; i < num_edges; i++) {
-            let t = i / parseFloat(num_edges-1);
+            let t = i / parseFloat(num_edges - 1);
             let x = Math.cos(t * Math.PI * 2) * radius + center.x;
             let y = Math.sin(t * Math.PI * 2) * radius + center.y;
             x = parseInt(x);
             y = parseInt(y);
-            vertices.push(Vector3(x,y,1));
-            oldX = x;
-            oldY = y;
+            vertices.push(Vector3(x, y, 1));
         }
         return vertices;
     }
@@ -159,8 +180,8 @@ class Renderer {
     drawSlide1() {
         // TODO: draw at least 3 polygons that spin about their own centers
         //   - have each polygon spin at a different speed / direction
-        
-        
+        this.drawConvexPolygon(this.triangleVerts, [0, 228, 128, 255]);
+
     }
 
     //
@@ -177,10 +198,10 @@ class Renderer {
         // TODO: get creative!
         //   - animation should involve all three basic transformation types
         //     (translation, scaling, and rotation)
-        
-        
+
+
     }
-    
+
     // vertex_list:  array of object [Matrix(3, 1), Matrix(3, 1), ..., Matrix(3, 1)]
     // color:        array of int [R, G, B, A]
     drawConvexPolygon(vertex_list, color) {
