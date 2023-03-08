@@ -22,6 +22,7 @@ class Renderer {
         this.dynamicBallSpeed = {x:10, y:-20}
         this.dynamicBallColor = [255, 255, 0, 255];
         this.dynamicBallRotationSpeed = -0.005;
+        this.timer = 0;
         this.triangleVerts1 = [new Vector3(100, 100, 1), new Vector3(150, 200, 1), new Vector3(200, 100, 1)]
         this.triangleVerts2 = [new Vector3(200, 200, 1), new Vector3(250, 300, 1), new Vector3(300, 200, 1)]
         this.triangleVerts3 = [new Vector3(400, 700, 1), new Vector3(350, 400, 1), new Vector3(400, 500, 1)]
@@ -96,8 +97,7 @@ class Renderer {
         this.scale(time, delta_time, this.scalingTriangles[2], {x:1, y:1});
 
         this.animateBallFun(time, delta_time);
-        this.scale(time, delta_time, this.dynamicBallVerts, {x:-5,y:-5})
-        this.rotate(time, delta_time, this.dynamicBallVerts, this.dynamicBallRotationSpeed)
+        this.scaleRotate(time, delta_time, this.dynamicBallVerts,this.dynamicBallRotationSpeed, {x:-5,y:-5});
         
     }
 
@@ -122,6 +122,15 @@ class Renderer {
     }
 
     animateBallFun(time, delta_time) {
+        this.timer += delta_time;
+        if(this.timer > 20000){
+            this.timer = 0;
+            this.dynamicBallVerts = this.getCircleVerts({ x: 100, y: 300 }, this.ballRadius, 5);
+            this.dynamicBallCenter = Vector3(100, 300, 1);
+            this.dynamicBallSpeed.x = 10;
+            this.dynamicBallSpeed.y = 30;
+        }
+
         this.dynamicBallColor[0] = (Math.sin(time * 0.001) +1) * 128;
         this.dynamicBallColor[1] = (Math.sin(time * 0.0015) +1) * 128;
         this.dynamicBallColor[1] = (Math.sin(time * 0.002) +1) * 128;
@@ -172,7 +181,7 @@ class Renderer {
         let rotateTransform = new Matrix(3, 3);
         mat3x3Translate(translateToCenter, -center.x, -center.y);
         mat3x3Translate(translateBack, center.x, center.y);
-        (mat3x3Rotate(rotateTransform, speed * delta_time));
+        mat3x3Rotate(rotateTransform, speed * delta_time);
         for (let index = 0; index < triangleVerts.length; index++) {
             triangleVerts[index] = translateBack.mult(rotateTransform).mult(translateToCenter).mult(triangleVerts[index]);
         }
@@ -194,6 +203,28 @@ class Renderer {
         mat3x3Scale(scaleTransform, 1 + delta_time*(Math.cos(time * 0.001) * 0.00009 * scaleFactor.x) , 1 + delta_time*(Math.sin(time * 0.001) * 0.00009 * scaleFactor.y));
         for (let index = 0; index < triangleVerts.length; index++) {
             triangleVerts[index] = translateBack.mult(scaleTransform).mult(translateToCenter).mult(triangleVerts[index]);
+            //triangleVerts[index] = scaleTransform.mult(triangleVerts[index]);
+        }
+    }
+
+    scaleRotate(time, delta_time, triangleVerts, speed, scaleFactor){
+        let center = {x:0, y:0};
+        for (let index = 0; index < triangleVerts.length; index++) {
+            center.x += triangleVerts[index].values[0][0];
+            center.y += triangleVerts[index].values[1][0];
+        }
+        center.x /= triangleVerts.length;
+        center.y /= triangleVerts.length;
+        let translateToCenter = new Matrix(3, 3);
+        let translateBack = new Matrix(3, 3);
+        let scaleTransform = new Matrix(3, 3);
+        let rotateTransform = new Matrix(3, 3);
+        mat3x3Translate(translateToCenter, -center.x, -center.y);
+        mat3x3Translate(translateBack, center.x, center.y);
+        mat3x3Scale(scaleTransform, 1 + delta_time*(Math.cos(time * 0.001) * 0.00009 * scaleFactor.x) , 1 + delta_time*(Math.sin(time * 0.001) * 0.00009 * scaleFactor.y));
+        mat3x3Rotate(rotateTransform, speed * delta_time);
+        for (let index = 0; index < triangleVerts.length; index++) {
+            triangleVerts[index] = translateBack.mult(scaleTransform).mult(rotateTransform).mult(translateToCenter).mult(triangleVerts[index]);
             //triangleVerts[index] = scaleTransform.mult(triangleVerts[index]);
         }
     }
