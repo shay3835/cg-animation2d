@@ -88,7 +88,7 @@ class Renderer {
         this.animateBall(time, delta_time);
 
         this.rotate(time, delta_time, this.rotatingTriangles[0], -0.001);
-        this.rotate(time, delta_time, this.rotatingTriangles[1], 0.001);
+        this.rotate(time, delta_time, this.rotatingTriangles[1], 0.003);
         this.rotate(time, delta_time, this.rotatingTriangles[2], 0.002);
         
         
