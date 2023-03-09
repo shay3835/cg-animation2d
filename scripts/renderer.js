@@ -105,16 +105,26 @@ class Renderer {
         //the amount to translate to get back in bounds when we exit the bounds
         let yCenter = this.ballCenter.values[1][0];
         let xCenter = this.ballCenter.values[0][0];
-        //X
-        if (xCenter < this.ballRadius || xCenter > this.canvas.width - this.ballRadius) {
+        let offset = { x: 0, y: 0 };
+        if (xCenter < this.ballRadius) {
             this.ballSpeed.x = this.ballSpeed.x * -1;
+            this.ballRotationSpeed *= -1;
+            offset.x = this.ballRadius - xCenter;
+        } else if (xCenter > this.canvas.width - this.ballRadius) {
+            this.ballSpeed.x = this.ballSpeed.x * -1;
+            this.ballRotationSpeed *= -1;
+            offset.x = this.canvas.width - this.ballRadius - xCenter;
         }
         //Y
-        if (yCenter < this.ballRadius || yCenter > this.canvas.height - this.ballRadius) {
+        if (yCenter < this.ballRadius) {
             this.ballSpeed.y = this.ballSpeed.y * -1;
+            offset.y = this.ballRadius - yCenter;
+        } else if (yCenter > this.canvas.height - this.ballRadius) {
+            this.ballSpeed.y = this.ballSpeed.y * -1;
+            offset.y = this.canvas.height - this.ballRadius - yCenter;
         }
         let ballTransform = new Matrix(3, 3);
-        mat3x3Translate(ballTransform, (this.ballSpeed.x * delta_time * 0.1), (this.ballSpeed.y * delta_time * 0.1));
+        mat3x3Translate(ballTransform, (this.ballSpeed.x * delta_time * 0.1) + offset.x, (this.ballSpeed.y * delta_time * 0.1) + offset.y);
         this.ballCenter = ballTransform.mult(this.ballCenter);
         for (let index = 0; index < this.ballVerts.length; index++) {
             this.ballVerts[index] = ballTransform.mult(this.ballVerts[index]);
